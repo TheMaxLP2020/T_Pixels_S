@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Форум S.T.A.L.K.E.R. v0.1</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #ccc;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #222;
+      padding: 10px;
+      text-align: center;
+      color: #0f0;
+      font-size: 24px;
+      border-bottom: 2px solid #0f0;
+    }
+    #new-topic {
+      padding: 10px;
+      border-bottom: 1px solid #333;
+    }
+    input, textarea {
+      width: 80%;
+      margin: 5px 0;
+      padding: 8px;
+      background: #222;
+      color: #ccc;
+      border: 1px solid #555;
+    }
+    button {
+      background: #0f0;
+      color: #000;
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .topic {
+      padding: 10px;
+      border-bottom: 1px solid #333;
+      cursor: pointer;
+    }
+    .topic:hover {
+      background-color: #222;
+    }
+    #topic-view {
+      padding: 10px;
+    }
+    .back-button {
+      margin-top: 10px;
+      display: inline-block;
+      background: #f00;
+      color: #fff;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<header>Форум S.T.A.L.K.E.R. v0.1</header>
+
+<div id="new-topic">
+    <!-- <button onclick="resetForum()">Сбросить форум</button> -->
+  <h3>Создать новую тему</h3>
+  <input type="text" id="topic-title" placeholder="Название темы"/>
+  <textarea id="topic-message" placeholder="Сообщение..."></textarea>
+  <button onclick="createTopic()">Опубликовать</button>
+</div>
+
+<div id="forum"></div>
+
+
+
+<div id="topic-view" style="display: none;"></div>
+
+<script>
+    
+  let forumData = JSON.parse(localStorage.getItem('stalker_forum')) || [];
+
+  function saveData() {
+    localStorage.setItem('stalker_forum', JSON.stringify(forumData));
+  }
+
+  function createTopic() {
+    const title = document.getElementById('topic-title').value.trim();
+    const message = document.getElementById('topic-message').value.trim();
+    if (title && message) {
+      forumData.push({ title, messages: [message] });
+      saveData();
+      document.getElementById('topic-title').value = '';
+      document.getElementById('topic-message').value = '';
+      showForum();
+    }
+  }
+
+  function showForum() {
+    const forum = document.getElementById('forum');
+    const view = document.getElementById('topic-view');
+    view.style.display = 'none';
+    forum.style.display = 'block';
+    forum.innerHTML = '<h3>Темы форума</h3>';
+    forumData.forEach((topic, index) => {
+      const div = document.createElement('div');
+      div.className = 'topic';
+      div.textContent = topic.title;
+      div.onclick = () => showTopic(index);
+      forum.appendChild(div);
+    });
+  }
+
+  function showTopic(index) {
+    const view = document.getElementById('topic-view');
+    const forum = document.getElementById('forum');
+    forum.style.display = 'none';
+    view.style.display = 'block';
+    const topic = forumData[index];
+    view.innerHTML = `<h3>${topic.title}</h3>`;
+    topic.messages.forEach(msg => {
+      const p = document.createElement('p');
+      p.textContent = msg;
+      view.appendChild(p);
+    });
+    const textarea = document.createElement('textarea');
+    textarea.placeholder = 'Ваш ответ...';
+    view.appendChild(textarea);
+    const button = document.createElement('button');
+    button.textContent = 'Ответить';
+    button.onclick = () => {
+      if (textarea.value.trim()) {
+        topic.messages.push(textarea.value.trim());
+        saveData();
+        showTopic(index);
+      }
+    };
+    view.appendChild(button);
+    const back = document.createElement('div');
+    back.className = 'back-button';
+    back.textContent = 'Назад';
+    back.onclick = showForum;
+    view.appendChild(back);
+  }
+
+  // Инициализация
+  showForum();
+</script>
+
+</body>
+</html>
